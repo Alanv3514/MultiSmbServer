@@ -13,4 +13,6 @@ public class ServerConfig
     public bool EnableGuest { get; set; } = true;
 
     public bool LanOnly { get; set; } = true;
+
+    public string Language { get; set; } = "en";
 }

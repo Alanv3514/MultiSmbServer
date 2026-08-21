@@ -45,9 +45,28 @@ public partial class MainViewModel : ObservableObject
     private string logText = string.Empty;
 
     [ObservableProperty]
-    private string statusText = "Detenido";
+    private string statusText = string.Empty;
 
     public bool IsStopped => !IsRunning;
+
+    private int _runningPort;
+    private int _runningShareCount;
+
+    public LocalizationManager Localization => LocalizationManager.Instance;
+
+    public int LanguageIndex
+    {
+        get => LocalizationManager.Instance.Language == LocalizationManager.AppLanguage.English ? 0 : 1;
+        set
+        {
+            LocalizationManager.Instance.Language = value == 1
+                ? LocalizationManager.AppLanguage.Spanish
+                : LocalizationManager.AppLanguage.English;
+
+            RefreshStatusText();
+            SaveConfig();
+        }
+    }
 
     public MainViewModel(Dispatcher dispatcher)
     {
@@ -60,6 +79,8 @@ public partial class MainViewModel : ObservableObject
         };
         _logTimer.Tick += (_, _) => FlushLog();
         _logTimer.Start();
+
+        RefreshStatusText();
     }
 
     private void LoadSettings()
@@ -78,6 +99,11 @@ public partial class MainViewModel : ObservableObject
         Password = saved.Password;
         EnableGuest = saved.EnableGuest;
         LanOnly = saved.LanOnly;
+
+        LocalizationManager.Instance.Language = saved.Language == "es"
+            ? LocalizationManager.AppLanguage.Spanish
+            : LocalizationManager.AppLanguage.English;
+        OnPropertyChanged(nameof(LanguageIndex));
     }
 
     public ServerConfig BuildConfig()
@@ -92,7 +118,8 @@ public partial class MainViewModel : ObservableObject
             Username = Username.Trim(),
             Password = Password,
             EnableGuest = EnableGuest,
-            LanOnly = LanOnly
+            LanOnly = LanOnly,
+            Language = LocalizationManager.Instance.Language == LocalizationManager.AppLanguage.English ? "en" : "es"
         };
     }
 
@@ -105,7 +132,7 @@ public partial class MainViewModel : ObservableObject
     private void SaveSettings()
     {
         SaveConfig();
-        AppendLog("Configuración guardada.");
+        AppendLog(LocalizationManager.Instance["ConfigSaved"]);
     }
 
     [RelayCommand]
@@ -128,7 +155,7 @@ public partial class MainViewModel : ObservableObject
     {
         var dialog = new OpenFolderDialog
         {
-            Title = $"Selecciona la carpeta del share '{entry.Name}'"
+            Title = string.Format(LocalizationManager.Instance["BrowseTitle"], entry.Name)
         };
 
         if (Directory.Exists(entry.Path))
@@ -151,7 +178,9 @@ public partial class MainViewModel : ObservableObject
             _serverManager.Start(config);
             IsRunning = true;
             SaveConfig();
-            StatusText = $"Servidor activo en el puerto {config.Port} ({config.Shares.Count} share(s))";
+            _runningPort = config.Port;
+            _runningShareCount = config.Shares.Count;
+            RefreshStatusText();
         }
         catch (Exception ex)
         {
@@ -172,8 +201,15 @@ public partial class MainViewModel : ObservableObject
         finally
         {
             IsRunning = false;
-            StatusText = "Detenido";
+            RefreshStatusText();
         }
+    }
+
+    private void RefreshStatusText()
+    {
+        StatusText = IsRunning
+            ? string.Format(LocalizationManager.Instance["StatusRunning"], _runningPort, _runningShareCount)
+            : LocalizationManager.Instance["StatusStopped"];
     }
 
     partial void OnIsRunningChanged(bool value)

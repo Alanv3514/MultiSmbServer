@@ -4,6 +4,7 @@ using System.Drawing.Drawing2D;
 using System.IO;
 using System.Windows;
 using System.Windows.Forms;
+using MultiSmbServer.Services;
 using MultiSmbServer.ViewModels;
 using MessageBox = System.Windows.MessageBox;
 
@@ -13,6 +14,8 @@ public partial class MainWindow : Window
 {
     private readonly MainViewModel _viewModel;
     private readonly NotifyIcon _trayIcon;
+    private readonly ToolStripMenuItem _openMenuItem;
+    private readonly ToolStripMenuItem _exitMenuItem;
     private bool _isExiting;
     private bool _shownTrayHint;
 
@@ -24,17 +27,23 @@ public partial class MainWindow : Window
         DataContext = _viewModel;
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
-        _trayIcon = CreateTrayIcon();
+        _trayIcon = CreateTrayIcon(out _openMenuItem, out _exitMenuItem);
+
+        LocalizationManager.Instance.PropertyChanged += OnLocalizationChanged;
 
         ParseCommandLineArgs();
     }
 
-    private NotifyIcon CreateTrayIcon()
+    private NotifyIcon CreateTrayIcon(out ToolStripMenuItem openItem, out ToolStripMenuItem exitItem)
     {
         var menu = new ContextMenuStrip();
-        menu.Items.Add("Abrir", null, (_, _) => RestoreFromTray());
+
+        openItem = new ToolStripMenuItem(LocalizationManager.Instance["TrayOpen"], null, (_, _) => RestoreFromTray());
+        exitItem = new ToolStripMenuItem(LocalizationManager.Instance["TrayExit"], null, (_, _) => ExitApplication());
+
+        menu.Items.Add(openItem);
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add("Salir", null, (_, _) => ExitApplication());
+        menu.Items.Add(exitItem);
 
         var trayIcon = new NotifyIcon
         {
@@ -46,6 +55,12 @@ public partial class MainWindow : Window
         trayIcon.DoubleClick += (_, _) => RestoreFromTray();
 
         return trayIcon;
+    }
+
+    private void OnLocalizationChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        _openMenuItem.Text = LocalizationManager.Instance["TrayOpen"];
+        _exitMenuItem.Text = LocalizationManager.Instance["TrayExit"];
     }
 
     private static System.Drawing.Icon CreateTrayIconImage()
@@ -106,10 +121,7 @@ public partial class MainWindow : Window
         {
             MessageBoxResult choice = MessageBox.Show(
                 this,
-                "¿Qué quieres hacer al cerrar la ventana?\n\n" +
-                "·  Sí  →  Salir de la aplicación (detiene el servidor).\n" +
-                "·  No  →  Minimizar a la bandeja y seguir sirviendo en segundo plano.\n" +
-                "·  Cancelar  →  Volver a la aplicación.",
+                LocalizationManager.Instance["ClosePrompt"],
                 "Multi SMB Server",
                 MessageBoxButton.YesNoCancel,
                 MessageBoxImage.Question,
@@ -164,7 +176,7 @@ public partial class MainWindow : Window
         {
             _shownTrayHint = true;
             _trayIcon.ShowBalloonTip(2000, "Multi SMB Server",
-                "La aplicación sigue en segundo plano. Doble clic en el icono de la bandeja para abrirla.",
+                LocalizationManager.Instance["TrayBalloon"],
                 ToolTipIcon.Info);
         }
     }

@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MultiSmbServer.Views"
         xmlns:vm="clr-namespace:MultiSmbServer.ViewModels"
+        xmlns:loc="clr-namespace:MultiSmbServer.Services"
         mc:Ignorable="d"
         Title="Multi SMB Server"
         Height="680" Width="880"
@@ -289,10 +290,21 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,14">
-            <TextBlock Text="Multi SMB Server" FontSize="20" FontWeight="SemiBold" Foreground="#E8E8F4"/>
-            <TextBlock Text="Servidor SMBv1 (NT LM 0.12) para consolas retro: PS2, Wii y GameCube" FontSize="12" Foreground="#8888A0" Margin="0,2,0,0"/>
-        </StackPanel>
+        <DockPanel Grid.Row="0" Margin="0,0,0,14">
+            <ComboBox DockPanel.Dock="Right"
+                      Style="{StaticResource FormComboBox}"
+                      Width="110"
+                      VerticalAlignment="Top"
+                      SelectedIndex="{Binding LanguageIndex, Mode=TwoWay}">
+                <ComboBoxItem Content="English"/>
+                <ComboBoxItem Content="Español"/>
+            </ComboBox>
+
+            <StackPanel>
+                <TextBlock Text="Multi SMB Server" FontSize="20" FontWeight="SemiBold" Foreground="#E8E8F4"/>
+                <TextBlock Text="{loc:Loc Key=Subtitle}" FontSize="12" Foreground="#8888A0" Margin="0,2,0,0"/>
+            </StackPanel>
+        </DockPanel>
 
         <Border Grid.Row="1" Background="#1C1C28" BorderBrush="#2E2E3E" BorderThickness="1" CornerRadius="8" Padding="14">
             <Grid IsEnabled="{Binding IsStopped}">
@@ -306,7 +318,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="Shares" Foreground="#9A9AB0" Margin="0,0,0,6"/>
+                <TextBlock Grid.Row="0" Text="{loc:Loc Key=SharesLabel}" Foreground="#9A9AB0" Margin="0,0,0,6"/>
 
                 <ItemsControl Grid.Row="1" ItemsSource="{Binding Shares}">
                     <ItemsControl.ItemTemplate>
@@ -320,15 +332,15 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox Grid.Column="0"
                                          Style="{StaticResource FormTextBox}"
-                                         ToolTip="Nombre del share"
+                                         ToolTip="{loc:Loc Key=ShareNameTooltip}"
                                          Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                                          Margin="0,0,6,0"/>
                                 <TextBox Grid.Column="1"
                                          Style="{StaticResource FormTextBox}"
-                                         ToolTip="Carpeta a compartir"
+                                         ToolTip="{loc:Loc Key=SharePathTooltip}"
                                          Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}"/>
                                 <Button Grid.Column="2"
-                                        Content="Examinar..."
+                                        Content="{loc:Loc Key=BrowseButton}"
                                         Style="{StaticResource SecondaryButton}"
                                         Command="{Binding DataContext.BrowseShareCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                         CommandParameter="{Binding}"
@@ -336,7 +348,7 @@
                                 <Button Grid.Column="3"
                                         Content="✕"
                                         Style="{StaticResource SecondaryButton}"
-                                        ToolTip="Quitar share"
+                                        ToolTip="{loc:Loc Key=RemoveShareTooltip}"
                                         Command="{Binding DataContext.RemoveShareCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                         CommandParameter="{Binding}"
                                         Width="30"
@@ -347,30 +359,30 @@
                 </ItemsControl>
 
                 <Button Grid.Row="2"
-                        Content="+ Agregar share"
+                        Content="{loc:Loc Key=AddShareButton}"
                         Style="{StaticResource SecondaryButton}"
                         HorizontalAlignment="Left"
                         Command="{Binding AddShareCommand}"
                         Margin="0,0,0,12"/>
 
                 <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,10">
-                    <TextBlock Style="{StaticResource FieldLabel}" Text="Puerto de escucha"/>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{loc:Loc Key=PortLabel}"/>
                     <TextBox Style="{StaticResource FormTextBox}"
                              Width="120"
                              Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"/>
-                    <TextBlock Text="(445 = Direct TCP, 139 = NetBIOS, o un puerto personalizado)"
+                    <TextBlock Text="{loc:Loc Key=PortHint}"
                                Foreground="#7A7A92"
                                VerticalAlignment="Center"
                                Margin="10,0,0,0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0,0,0,10">
-                    <TextBlock Style="{StaticResource FieldLabel}" Text="Usuario"/>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{loc:Loc Key=UserLabel}"/>
                     <TextBox Style="{StaticResource FormTextBox}"
                              Width="220"
                              HorizontalAlignment="Left"
                              Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
-                    <TextBlock Style="{StaticResource FieldLabel}" Text="Contraseña" Margin="20,0,10,0"/>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{loc:Loc Key=PasswordLabel}" Margin="20,0,10,0"/>
                     <PasswordBox Style="{StaticResource FormPasswordBox}"
                                  Width="220"
                                  HorizontalAlignment="Left"
@@ -379,12 +391,12 @@
 
                 <CheckBox Grid.Row="5"
                           IsChecked="{Binding EnableGuest}"
-                          Content="Permitir acceso Guest/Anónimo (recomendado: OPL suele conectar sin credenciales)"/>
+                          Content="{loc:Loc Key=GuestCheckbox}"/>
 
                 <CheckBox Grid.Row="6"
                           Margin="0,8,0,0"
                           IsChecked="{Binding LanOnly}"
-                          Content="Solo aceptar conexiones de la red local (LAN). Recomendado para no exponer el servidor a Internet."/>
+                          Content="{loc:Loc Key=LanOnlyCheckbox}"/>
             </Grid>
         </Border>
 
@@ -394,16 +406,16 @@
                        Foreground="#8888A0"
                        VerticalAlignment="Center"/>
             <StackPanel Orientation="Horizontal">
-                <Button Content="Iniciar servidor"
+                <Button Content="{loc:Loc Key=StartButton}"
                         Style="{StaticResource PrimaryButton}"
                         Command="{Binding StartCommand}"
                         IsEnabled="{Binding IsStopped}"/>
-                <Button Content="Detener servidor"
+                <Button Content="{loc:Loc Key=StopButton}"
                         Style="{StaticResource SecondaryButton}"
                         Command="{Binding StopCommand}"
                         IsEnabled="{Binding IsRunning}"
                         Margin="8,0,0,0"/>
-                <Button Content="Guardar configuración"
+                <Button Content="{loc:Loc Key=SaveConfigButton}"
                         Style="{StaticResource SecondaryButton}"
                         Command="{Binding SaveSettingsCommand}"
                         Margin="8,0,0,0"/>
@@ -416,7 +428,7 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Text="Registro de actividad" Foreground="#9A9AB0" Margin="0,0,0,6"/>
+            <TextBlock Grid.Row="0" Text="{loc:Loc Key=LogLabel}" Foreground="#9A9AB0" Margin="0,0,0,6"/>
 
             <TextBox Grid.Row="1"
                      x:Name="LogBox"

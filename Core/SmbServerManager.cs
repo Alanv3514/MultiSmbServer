@@ -28,23 +28,23 @@ public sealed class SmbServerManager
     public void Start(ServerConfig config)
     {
         if (IsRunning)
-            throw new InvalidOperationException("El servidor ya está en ejecución.");
+            throw new InvalidOperationException("The server is already running.");
 
         List<ShareConfig> shares = config.Shares
             .Where(s => !string.IsNullOrWhiteSpace(s.Name))
             .ToList();
 
         if (shares.Count == 0)
-            throw new ArgumentException("Agrega al menos un share con nombre y carpeta válidos.");
+            throw new ArgumentException("Add at least one share with a valid name and folder.");
 
         foreach (ShareConfig shareConfig in shares)
         {
             if (string.IsNullOrWhiteSpace(shareConfig.Path) || !Directory.Exists(shareConfig.Path))
-                throw new DirectoryNotFoundException($"La carpeta del share '{shareConfig.Name}' no existe: '{shareConfig.Path}'.");
+                throw new DirectoryNotFoundException($"The folder for share '{shareConfig.Name}' does not exist: '{shareConfig.Path}'.");
         }
 
         if (config.Port < 1 || config.Port > 65535)
-            throw new ArgumentException("El puerto debe estar entre 1 y 65535.");
+            throw new ArgumentException("The port must be between 1 and 65535.");
 
         _config = config;
 
@@ -88,22 +88,22 @@ public sealed class SmbServerManager
             _config = null;
 
             string hint = config.Port == 445
-                ? "Si es el puerto 445, probablemente el servicio nativo de Windows (LanmanServer) lo está ocupando. " +
-                  "Ejecuta en PowerShell como Administrador: Stop-Service LanmanServer -Force. "
+                ? "If it is port 445, the native Windows service (LanmanServer) is probably using it. " +
+                  "Run in PowerShell as Administrator: Stop-Service LanmanServer -Force. "
                 : string.Empty;
 
             throw new InvalidOperationException(
-                $"No se pudo abrir el puerto {config.Port} ({ex.SocketErrorCode}). " + hint, ex);
+                $"Could not open port {config.Port} ({ex.SocketErrorCode}). " + hint, ex);
         }
 
         _server = server;
         IsRunning = true;
 
-        Log($"Servidor SMBv1 (NT LM 0.12) escuchando en el puerto {config.Port}.");
+        Log($"SMBv1 server (NT LM 0.12) listening on port {config.Port}.");
         foreach (ShareConfig shareConfig in shares)
             Log($"Share: \\\\{Environment.MachineName}\\{shareConfig.Name} -> {shareConfig.Path}");
-        Log($"Autenticación: usuario '{config.Username}'" +
-            (config.EnableGuest ? ", acceso Guest/Anónimo habilitado." : ", acceso Guest/Anónimo deshabilitado."));
+        Log($"Authentication: user '{config.Username}'" +
+            (config.EnableGuest ? ", Guest/Anonymous access enabled." : ", Guest/Anonymous access disabled."));
     }
 
     public void Stop()
@@ -120,7 +120,7 @@ public sealed class SmbServerManager
         _config = null;
         IsRunning = false;
 
-        Log("Servidor detenido.");
+        Log("Server stopped.");
     }
 
     private string? GetUserPassword(string userName)
@@ -146,12 +146,12 @@ public sealed class SmbServerManager
         if (_config is { LanOnly: true } && !IsLocalNetworkAddress(e.IPEndPoint.Address))
         {
             e.Accept = false;
-            Log($"Rechazada conexión externa de {e.IPEndPoint.Address}:{e.IPEndPoint.Port} (solo se acepta LAN).");
+            Log($"Rejected external connection from {e.IPEndPoint.Address}:{e.IPEndPoint.Port} (LAN only).");
             return;
         }
 
         e.Accept = true;
-        Log($"Conexión entrante de {e.IPEndPoint.Address}:{e.IPEndPoint.Port}.");
+        Log($"Incoming connection from {e.IPEndPoint.Address}:{e.IPEndPoint.Port}.");
     }
 
     private static bool IsLocalNetworkAddress(IPAddress address)
@@ -179,8 +179,8 @@ public sealed class SmbServerManager
 
         string access = e.RequestedAccess switch
         {
-            FileAccess.Read => "lectura",
-            FileAccess.Write => "escritura",
+            FileAccess.Read => "read",
+            FileAccess.Write => "write",
             _ => e.RequestedAccess.ToString()
         };
 
@@ -201,7 +201,7 @@ public sealed class SmbServerManager
             _accessLogThrottle[key] = DateTime.UtcNow;
         }
 
-        Log($"Acceso de {access}: usuario '{e.UserName}' -> '{e.Path}' (desde {e.ClientEndPoint?.Address}).");
+        Log($"{access} access: user '{e.UserName}' -> '{e.Path}' (from {e.ClientEndPoint?.Address}).");
     }
 
     private void OnServerLogEntryAdded(object? sender, LogEntry e)
