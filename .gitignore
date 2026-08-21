@@ -39,3 +39,6 @@ desktop.ini
 
 # Logs / crash
 *.log
+
+# Release archives
+*.zip

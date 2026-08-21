@@ -1,131 +1,133 @@
+[English](README.md) · [Español](README.es.md)
+
 # Multi SMB Server
 
-Servidor SMBv1 (NT LM 0.12) con interfaz gráfica en **.NET 8 / WPF**, pensado para servir juegos y recursos a consolas retro por red: **PlayStation 2** (Open PS2 Loader), **Wii** y **GameCube** (USB Loader GX, WiiFlow, Nintendont).
+Self-contained **SMBv1 (NT LM 0.12)** file server with a **.NET 8 / WPF** GUI, built to serve games and resources over the network to retro consoles: **PlayStation 2** (Open PS2 Loader), **Wii** and **GameCube** (USB Loader GX, WiiFlow, Nintendont).
 
-## Requisitos
+## Requirements
 
-- Windows (el acceso al disco usa las APIs nativas NT).
-- .NET 8 Runtime (o usa la compilación autocontenida, ver [Generar el .exe](#generar-el-exe)).
-- Las consolas (PS2, Wii, GameCube) en la misma red que la PC.
+- Windows (disk access uses the native NT APIs).
+- .NET 8 Runtime (or use the self-contained build, see [Building the .exe](#building-the-exe)).
+- Consoles (PS2, Wii, GameCube) on the same network as the PC.
 
-## Uso rápido
+## Quick start
 
-1. Ejecuta la aplicación.
-2. En **Shares** agrega una o más carpetas compartidas:
-   - **PS2**: la raíz con las carpetas de OPL (`DVD/`, `CD/`, `ART/`, `CFG/`, `VMC/`).
-   - **Wii/GameCube** (opcional): la raíz con `wbfs/` (Wii) y/o `games/` (GameCube).
-3. Ajusta el **Nombre** de cada share (p. ej. `PS2SMB`, `WII`), el **Puerto**, **Usuario** y **Contraseña**.
-4. Pulsa **Iniciar servidor** y configura OPL tal como se indica abajo.
+1. Run the application.
+2. In **Shares**, add one or more shared folders:
+   - **PS2**: the root with the OPL folders (`DVD/`, `CD/`, `ART/`, `CFG/`, `VMC/`).
+   - **Wii/GameCube** (optional): the root with `wbfs/` (Wii) and/or `games/` (GameCube).
+3. Set the **Name** of each share (e.g. `PS2SMB`, `WII`), the **Port**, **User** and **Password**.
+4. Press **Start server** and configure OPL as described below.
 
-> El **Nombre del share** y el **Puerto** deben ser exactamente los mismos que configures en OPL (o en el loader de Wii).
+> The **share name** and **port** must be exactly the same as the ones you configure in OPL (or in the Wii loader).
 
-La configuración se **guarda automáticamente** (al iniciar el servidor, al cerrar o con el botón **Guardar configuración**), así que la próxima vez se carga sola.
+The configuration is **saved automatically** (when starting the server, on close, or with the **Save configuration** button), so it loads on the next launch.
 
-### Múltiples shares
+### Multiple shares
 
-Puedes exponer varias carpetas a la vez (PS2, Wii, GameCube...) con el botón **+ Agregar share**. Cada share tiene su propio nombre y carpeta. Todas las consolas se conectan al mismo servidor y puerto; el nombre del share es lo que las distingue.
+You can expose several folders at once (PS2, Wii, GameCube...) with the **+ Add share** button. Each share has its own name and folder. All consoles connect to the same server and port; the share name is what distinguishes them.
 
-## Bandeja del sistema y arranque silencioso
+## System tray and silent start
 
-- **Minimizar** la ventana la oculta en la bandeja del sistema (sigue sirviendo en segundo plano).
-- **Cerrar (X)** muestra un diálogo: salir de la aplicación, minimizar a la bandeja o cancelar.
-- Doble clic en el icono de la bandeja (o menú **Abrir**) la restaura; **Salir** la cierra de verdad.
-- Argumentos de línea de comandos:
-  - `/START` — inicia el servidor automáticamente al abrir (usa la configuración guardada).
-  - `/SILENT` (o `/HIDE`, `/MINIMIZED`) — arranca oculta en la bandeja.
+- **Minimizing** the window hides it in the system tray (it keeps serving in the background).
+- **Closing (X)** shows a dialog: exit the app, minimize to tray, or cancel.
+- Double-click the tray icon (or the **Open** menu) restores it; **Exit** really closes it.
+- Command line arguments:
+  - `/START` — starts the server automatically on launch (uses the saved configuration).
+  - `/SILENT` (or `/HIDE`, `/MINIMIZED`) — starts hidden in the tray.
 
-Ejemplos:
+Examples:
 
 ```powershell
-# Abrir y arrancar el servidor automáticamente
+# Open and start the server automatically
 MultiSmbServer.exe /START
 
-# Arrancar en segundo plano (bandeja) y con el servidor activo
+# Start in the background (tray) with the server active
 MultiSmbServer.exe /START /SILENT
 ```
 
-## Estructura de carpetas esperada
+## Expected folder structure
 
-La carpeta del share de PS2 debe contener las subcarpetas estándar de OPL:
-
-```
-Carpeta PS2/
-├── DVD/   -> juegos en formato .iso (juegos DVD)
-├── CD/    -> juegos en formato .iso (juegos CD)
-├── ART/   -> carátulas (descargadas por OPL)
-├── CFG/   -> configuraciones por juego (las escribe OPL)
-└── VMC/   -> Memory Cards virtuales (las escribe OPL)
-```
-
-Para Wii/GameCube (USB Loader GX, WiiFlow, Nintendont), la carpeta del share típicamente contiene:
+The PS2 share folder must contain the standard OPL subfolders:
 
 ```
-Carpeta Wii/
-├── wbfs/    -> juegos de Wii (.wbfs)
-└── games/   -> juegos de GameCube (una subcarpeta por juego)
+PS2 folder/
+├── DVD/   -> games in .iso format (DVD games)
+├── CD/    -> games in .iso format (CD games)
+├── ART/   -> cover art (downloaded by OPL)
+├── CFG/   -> per-game configurations (written by OPL)
+└── VMC/   -> virtual Memory Cards (written by OPL)
 ```
 
-## Configuración en Open PS2 Loader (OPL)
+For Wii/GameCube (USB Loader GX, WiiFlow, Nintendont), the share folder typically contains:
 
-Entra en OPL → **Settings** → **Network Settings** (configura antes la red con IP fija o DHCP) y rellena:
+```
+Wii folder/
+├── wbfs/    -> Wii games (.wbfs)
+└── games/   -> GameCube games (one subfolder per game)
+```
 
-| Campo OPL | Valor |
+## Configuration in Open PS2 Loader (OPL)
+
+Go to OPL → **Settings** → **Network Settings** (first set up networking with a static IP or DHCP) and fill in:
+
+| OPL field | Value |
 |---|---|
-| **SMB Server** | La IP de la PC donde corre el servidor (p. ej. `192.168.1.10`). |
-| **SMB Share Name** | El mismo nombre del share (p. ej. `PS2SMB`). |
-| **Share Port** | El mismo puerto que pusiste en la app (p. ej. `445` o `1445`). |
-| **SMB Username** | El usuario configurado en la app (p. ej. `ps2`). |
-| **SMB Password** | La contraseña configurada en la app (p. ej. `opl`), o déjala vacía. |
+| **SMB Server** | The IP of the PC running the server (e.g. `192.168.1.10`). |
+| **SMB Share Name** | The same share name (e.g. `PS2SMB`). |
+| **Share Port** | The same port you set in the app (e.g. `445` or `1445`). |
+| **SMB Username** | The user configured in the app (e.g. `ps2`). |
+| **SMB Password** | The password configured in the app (e.g. `opl`), or leave it empty. |
 
-Pasos finales en OPL:
+Final steps in OPL:
 
-1. Vuelve al menú y selecciona el modo **Network** (SMB).
-2. Pulsa **Refresh / Scan** para que OPL enumere los juegos de `DVD/` y `CD/`.
-3. Inicia el juego: OPL lee la ISO por SMB en bloques de hasta ~60 KB.
+1. Go back to the menu and select the **Network** (SMB) mode.
+2. Press **Refresh / Scan** so OPL lists the games in `DVD/` and `CD/`.
+3. Start a game: OPL reads the ISO over SMB in blocks of up to ~60 KB.
 
-### Notas de autenticación
+### Authentication notes
 
-- Si en OPL dejas la contraseña vacía, la sesión entra por **Guest**. En la app debe estar marcado **Permitir acceso Guest/Anónimo** (lo está por defecto).
-- Si configuras usuario y contraseña, deben coincidir exactamente entre la app y OPL.
-- OPL habla SMB1 clásico (no extended security) y usa NTLMv1 sobre el challenge del NEGOTIATE; el servidor lo maneja automáticamente.
+- If you leave the OPL password empty, the session logs in as **Guest**. In the app, **Allow Guest/Anonymous access** must be checked (it is by default).
+- If you set a user and password, they must match exactly between the app and OPL.
+- OPL speaks classic SMB1 (no extended security) and uses NTLMv1 over the NEGOTIATE challenge; the server handles it automatically.
 
-## Generar el .exe
+## Building the .exe
 
-Desde la carpeta del proyecto (la que contiene `MultiSmbServer.csproj`):
+From the project folder (the one containing `MultiSmbServer.csproj`):
 
 ```powershell
-# Exe dependiente del framework (requiere .NET 8 Runtime en la PC de destino)
+# Framework-dependent exe (requires .NET 8 Runtime on the target PC)
 dotnet publish -c Release -r win-x64 --self-contained false -o publish
 
-# Exe autocontenido en un solo archivo (no requiere .NET instalado, ~147 MB)
+# Self-contained single-file exe (no .NET required, ~147 MB)
 dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish-standalone
 ```
 
-El ejecutable queda en `publish\MultiSmbServer.exe` (dependiente del framework) o `publish-standalone\MultiSmbServer.exe` (autocontenido).
+The executable ends up in `publish\MultiSmbServer.exe` (framework-dependent) or `publish-standalone\MultiSmbServer.exe` (self-contained).
 
-## Seguridad
+## Security
 
-SMBv1 es un protocolo antiguo y sin cifrado (es lo que exige OPL/PS2 y el homebrew de Wii, no se puede evitar). Para no exponerte como al servicio nativo de Windows, la app aplica estas medidas:
+SMBv1 is an old, unencrypted protocol (it is what OPL/PS2 and Wii homebrew require, unavoidable). To avoid exposing yourself like Windows' native service, the app applies these measures:
 
-- **Solo LAN (activado por defecto)**: rechaza conexiones desde IPs públicas/Internet (solo acepta `192.168.x.x`, `10.x.x.x`, `172.16–31.x.x`, loopback e IPv6 link-local/ULA). Desmárcalo solo si sabes lo que haces.
-- **Puerto no estándar**: usa un puerto alto (p. ej. `1445`) en lugar del `445` para reducir escaneos automáticos.
-- **No hagas port-forwarding** del puerto en tu router: el servidor es solo para tu red local.
-- **Credenciales**: define usuario/contraseña (o usa Guest). Recuerda que la autenticación es NTLMv1, débil por diseño de SMB1.
+- **LAN only (enabled by default)**: rejects connections from public/Internet IPs (only accepts `192.168.x.x`, `10.x.x.x`, `172.16–31.x.x`, loopback and IPv6 link-local/ULA). Uncheck it only if you know what you are doing.
+- **Non-standard port**: use a high port (e.g. `1445`) instead of `445` to reduce automated scans.
+- **Do not port-forward** the port on your router: the server is only for your local network.
+- **Credentials**: set a user/password (or use Guest). Remember that authentication is NTLMv1, weak by design of SMB1.
 
-A diferencia del `LanmanServer` nativo de Windows, esta app no corre con privilegios del sistema ni escucha en `0.0.0.0` con el stack completo de Windows expuesto.
+Unlike Windows' native `LanmanServer`, this app does not run with system privileges nor listen on `0.0.0.0` with the full Windows stack exposed.
 
-## Notas técnicas
+## Technical notes
 
-- El servidor usa **SMBLibrary** (1.5.0) con SMB1 únicamente (`enableSMB1=true`), lo que requieren OPL y el homebrew de Wii.
-- Soporta **múltiples shares** simultáneos (PS2, Wii/GameCube, etc.) en el mismo servidor y puerto.
-- Puertos soportados: `445` (Direct TCP), `139` (NetBIOS over TCP) o **cualquier puerto personalizado** (en ese caso el servidor escucha Direct TCP en ese puerto).
-- El acceso al sistema de archivos se hace con `NTDirectoryFileSystem` (SMBLibrary.Win32).
-- Los logs (conexiones, autenticación, tree connect y lecturas) se muestran en la consola embebida con timestamp.
-- Los logs de archivo se limitan para no saturar la UI durante la carga de juegos; las excepciones no controladas se escriben en `%APPDATA%\MultiSmbServer\crash.log`.
+- The server uses **SMBLibrary** (1.5.0) with SMB1 only (`enableSMB1=true`), which is what OPL and Wii homebrew require.
+- Supports **multiple simultaneous shares** (PS2, Wii/GameCube, etc.) on the same server and port.
+- Supported ports: `445` (Direct TCP), `139` (NetBIOS over TCP) or **any custom port** (in that case the server listens on Direct TCP on that port).
+- Filesystem access uses `NTDirectoryFileSystem` (SMBLibrary.Win32).
+- Logs (connections, authentication, tree connects and reads) are shown in the embedded console with timestamps.
+- File logs are throttled to avoid saturating the UI during game loading; unhandled exceptions are written to `%APPDATA%\MultiSmbServer\crash.log`.
 
-## Apoyar el proyecto
+## Support the project
 
-Si te resulta útil, podés colaborar con un cafecito:
+If you find it useful, you can buy me a coffee:
 
 - [Ko-fi](https://ko-fi.com/elanvzone)
 - [Cafecito](https://cafecito.app/elanvzone)
